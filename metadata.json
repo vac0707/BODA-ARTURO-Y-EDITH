@@ -1,0 +1,6 @@
+{
+  "name": "Boda Arturo & Edith",
+  "description": "Invitación virtual de boda interactiva, elegante y cinematográfica para Arturo y Edith.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
