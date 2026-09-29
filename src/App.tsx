@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Heart, Calendar, Clock, MapPin, Gift, Music, Volume2, VolumeX, 
   Send, CheckCircle2, Users, Sparkles, Mail, MessageSquare, ChevronDown, ExternalLink, Phone,
-  Maximize2, X, ChevronLeft, ChevronRight, Camera
+  Maximize2, X, ChevronLeft, ChevronRight, Camera, Video, Globe, Play
 } from 'lucide-react';
 
 const galleryPhotos = [
@@ -23,14 +23,13 @@ const galleryPhotos = [
 export default function App() {
   const [isOpen, setIsOpen] = useState(false);
   const [isPlayingMusic, setIsPlayingMusic] = useState(false);
-  const [audioCtx, setAudioCtx] = useState<AudioContext | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Lightbox State
   const [activeImageIndex, setActiveImageIndex] = useState<number | null>(null);
 
   // RSVP Form State
   const [rsvpName, setRsvpName] = useState('');
-  const [rsvpGuests, setRsvpGuests] = useState('1');
   const [rsvpStatus, setRsvpStatus] = useState<'yes' | 'no'>('yes');
   const [rsvpDiet, setRsvpDiet] = useState('');
 
@@ -60,51 +59,29 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // Ambient chime simulator using Web Audio API for gentle wedding music toggle
   const toggleMusic = () => {
-    if (!isPlayingMusic) {
-      try {
-        const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-        setAudioCtx(ctx);
-        playSoftChimes(ctx);
-        setIsPlayingMusic(true);
-      } catch {
-        setIsPlayingMusic(true);
-      }
-    } else {
-      if (audioCtx) {
-        audioCtx.close();
-        setAudioCtx(null);
-      }
+    if (!audioRef.current) return;
+    if (isPlayingMusic) {
+      audioRef.current.pause();
       setIsPlayingMusic(false);
+    } else {
+      audioRef.current.play().then(() => {
+        setIsPlayingMusic(true);
+      }).catch((err) => {
+        console.error("Audio playback prevented:", err);
+      });
     }
   };
 
-  const playSoftChimes = (ctx: AudioContext) => {
-    const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
-    let index = 0;
-
-    const playNote = () => {
-      if (ctx.state === 'closed') return;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(notes[index % notes.length], ctx.currentTime);
-      index++;
-
-      gain.gain.setValueAtTime(0.02, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 3);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.start();
-      osc.stop(ctx.currentTime + 3);
-
-      setTimeout(playNote, 4000);
-    };
-
-    playNote();
+  const handleOpenInvitation = () => {
+    setIsOpen(true);
+    if (audioRef.current) {
+      audioRef.current.play().then(() => {
+        setIsPlayingMusic(true);
+      }).catch(() => {
+        // Autoplay policy restriction fallback
+      });
+    }
   };
 
   const handleWhatsAppRsvp = (e: React.FormEvent) => {
@@ -112,7 +89,7 @@ export default function App() {
     if (!rsvpName.trim()) return;
 
     const attendanceText = rsvpStatus === 'yes' ? 'Sí asistirré con mucha alegría 🎉' : 'No podré asistir, pero les acompaño en espíritu ✨';
-    const message = `Hola Arturo y Edith, soy *${rsvpName}*. Confirmo mi asistencia a su boda.\n\n- Asistencia: ${attendanceText}\n- Número de personas: ${rsvpGuests}\n- Restricciones/Dieta: ${rsvpDiet || 'Ninguna'}`;
+    const message = `Hola Arturo y Edith, soy *${rsvpName}*. Confirmo mi asistencia a su boda.\n\n- ¿Asistirás?: ${attendanceText}\n- Restricciones/Dieta: ${rsvpDiet || 'Ninguna'}`;
     
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/51983991678?text=${encodedMessage}`;
@@ -126,6 +103,14 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#FBF9F5] text-[#2C2A29] selection:bg-[#C5B358]/20 relative">
       
+      {/* Background Audio Element */}
+      <audio 
+        ref={audioRef} 
+        src="https://res.cloudinary.com/vsgbhmey/video/upload/v1790722435/Franco_de_Vita_-_Te_Amo_Live_-_Franco_De_Vita_128k.mp3" 
+        loop 
+        preload="auto" 
+      />
+
       {/* Background Ambient Music Control Floating Button */}
       <button
         onClick={toggleMusic}
@@ -135,7 +120,7 @@ export default function App() {
       >
         {isPlayingMusic ? <Volume2 className="w-5 h-5 animate-pulse" /> : <VolumeX className="w-5 h-5" />}
         <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 ease-in-out whitespace-nowrap text-xs font-medium px-0 group-hover:px-1">
-          {isPlayingMusic ? 'Música Activa' : 'Música'}
+          {isPlayingMusic ? 'Te Amo - Franco de Vita' : 'Música'}
         </span>
       </button>
 
@@ -174,7 +159,7 @@ export default function App() {
             </p>
 
             <button
-              onClick={() => setIsOpen(true)}
+              onClick={handleOpenInvitation}
               className="group relative inline-flex items-center gap-3 px-8 py-4 bg-[#6B7F67] hover:bg-[#556B52] text-white font-medium rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 border border-[#D4AF37]/50"
             >
               <Sparkles className="w-4 h-4 text-[#C5B358] group-hover:rotate-12 transition-transform" />
@@ -196,7 +181,7 @@ export default function App() {
         <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-4 overflow-hidden">
           <div className="absolute inset-0 z-0">
             <img 
-              src="https://res.cloudinary.com/vsgbhmey/image/upload/v1790695399/ed8f920f-25a6-4afc-ab52-c2b85eef2148.png" 
+              src="https://res.cloudinary.com/vsgbhmey/image/upload/v1790722344/FOTO_A_Y_E.png" 
               alt="Arturo y Edith Boda" 
               className="w-full h-full object-cover object-center scale-105 animate-pulse-gold duration-[10000ms]"
               referrerPolicy="no-referrer"
@@ -246,7 +231,6 @@ export default function App() {
               <a href="#galeria" className="hover:text-[#6B7F67] transition-colors">Galería</a>
               <a href="#ubicacion" className="hover:text-[#6B7F67] transition-colors">Ubicación</a>
               <a href="#asistencia" className="hover:text-[#6B7F67] transition-colors">Asistencia</a>
-              <a href="#regalos" className="hover:text-[#6B7F67] transition-colors">Regalos</a>
             </div>
 
             <a 
@@ -349,7 +333,7 @@ export default function App() {
           </div>
         </section>
 
-        {/* GALERÍA DE FOTOS DE ALTO NIVEL (ADAPTABLE VERTICALES Y HORIZONTALES CON LIGHTBOX) */}
+        {/* GALERÍA DE FOTOS DE ALTO NIVEL */}
         <section id="galeria" className="py-24 px-4 bg-[#F4EFE6]">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
@@ -364,7 +348,6 @@ export default function App() {
               </p>
             </div>
 
-            {/* Responsive Masonry / Column layout that adapts naturally to vertical & horizontal photos */}
             <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
               {galleryPhotos.map((photo, index) => (
                 <div 
@@ -542,36 +525,18 @@ export default function App() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-xs uppercase tracking-wider text-stone-600 font-semibold mb-2">
-                    ¿Asistirás?
-                  </label>
-                  <select
-                    value={rsvpStatus}
-                    onChange={(e) => setRsvpStatus(e.target.value as 'yes' | 'no')}
-                    className="w-full px-4 py-3 rounded-lg border border-stone-200 focus:ring-2 focus:ring-[#6B7F67] focus:outline-none text-sm bg-[#FBF9F5]"
-                  >
-                    <option value="yes">Sí, ahí estaré con alegría</option>
-                    <option value="no">No podré asistir</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs uppercase tracking-wider text-stone-600 font-semibold mb-2">
-                    Número de asistentes
-                  </label>
-                  <select
-                    value={rsvpGuests}
-                    onChange={(e) => setRsvpGuests(e.target.value)}
-                    className="w-full px-4 py-3 rounded-lg border border-stone-200 focus:ring-2 focus:ring-[#6B7F67] focus:outline-none text-sm bg-[#FBF9F5]"
-                  >
-                    <option value="1">1 persona</option>
-                    <option value="2">2 personas</option>
-                    <option value="3">3 personas</option>
-                    <option value="4">4 personas</option>
-                  </select>
-                </div>
+              <div>
+                <label className="block text-xs uppercase tracking-wider text-stone-600 font-semibold mb-2">
+                  ¿Asistirás?
+                </label>
+                <select
+                  value={rsvpStatus}
+                  onChange={(e) => setRsvpStatus(e.target.value as 'yes' | 'no')}
+                  className="w-full px-4 py-3 rounded-lg border border-stone-200 focus:ring-2 focus:ring-[#6B7F67] focus:outline-none text-sm bg-[#FBF9F5]"
+                >
+                  <option value="yes">Sí, ahí estaré con alegría</option>
+                  <option value="no">No podré asistir</option>
+                </select>
               </div>
 
               <div>
@@ -598,42 +563,7 @@ export default function App() {
           </div>
         </section>
 
-        {/* 8. MESA DE REGALOS */}
-        <section id="regalos" className="py-24 px-4 bg-[#FBF9F5]">
-          <div className="max-w-3xl mx-auto text-center">
-            <span className="text-xs uppercase tracking-[0.3em] text-[#6B7F67] font-semibold block mb-3">
-              Detalles
-            </span>
-            <h3 className="font-serif-wedding text-3xl sm:text-5xl text-[#2C2A29] mb-6">
-              Mesa de Regalos
-            </h3>
-            <p className="text-stone-600 text-sm sm:text-base font-sans-wedding max-w-lg mx-auto mb-12">
-              Su presencia es nuestro mejor regalo. Si desean tener un detalle adicional con nosotros para iniciar nuestro hogar, les compartimos las siguientes opciones:
-            </p>
-
-            <div className="grid sm:grid-cols-2 gap-6">
-              <div className="bg-[#FFFEFC] p-8 rounded-xl shadow-sm border border-[#C5B358]/20 flex flex-col items-center">
-                <Gift className="w-10 h-10 text-[#6B7F67] mb-4" />
-                <h4 className="font-serif-wedding text-2xl text-[#2C2A29] mb-2">Lluvia de Sobres</h4>
-                <p className="text-stone-600 text-xs font-sans-wedding leading-relaxed mb-6">
-                  Habrá un buzón especial en la recepción para recibir sus sobres con buenos deseos.
-                </p>
-                <span className="text-xs font-semibold text-[#6B7F67] uppercase tracking-wider">Disponible en recepción</span>
-              </div>
-
-              <div className="bg-[#FFFEFC] p-8 rounded-xl shadow-sm border border-[#C5B358]/20 flex flex-col items-center">
-                <Sparkles className="w-10 h-10 text-[#C5B358] mb-4" />
-                <h4 className="font-serif-wedding text-2xl text-[#2C2A29] mb-2">Mesa de Regalos Liverpool</h4>
-                <p className="text-stone-600 text-xs font-sans-wedding leading-relaxed mb-6">
-                  Número de evento / mesa de regalos digital para su comodidad.
-                </p>
-                <span className="text-xs font-semibold text-[#C5B358] uppercase tracking-wider">Código: #51429876</span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* 10. CIERRE */}
+        {/* 10. CIERRE & CREADOR / COTIZACIÓN */}
         <footer className="py-20 px-4 bg-[#4A5D47] text-[#FBF9F5] text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(#D4AF37_1px,transparent_1px)] [background-size:24px_24px] opacity-10"></div>
           
@@ -650,9 +580,71 @@ export default function App() {
               Arturo Camacho Salcedo &amp; Edith Peña Sánchez
             </p>
 
-            <div className="text-xs text-stone-400 tracking-widest uppercase">
+            <div className="text-xs text-stone-400 tracking-widest uppercase mb-12">
               17 · 10 · 2026
             </div>
+
+            {/* COTIZACIÓN / CREADOR BANNER (DISCRETO CON ICONOS) */}
+            <div className="w-full bg-[#3E4F3B]/80 backdrop-blur-sm border border-[#D4AF37]/20 rounded-2xl p-6 sm:p-8 text-center shadow-md">
+              <p className="font-serif-wedding text-2xl text-[#FBF9F5] mb-2 italic">
+                ¿Te gusta una invitación así? Cotiza la tuya
+              </p>
+              
+              <div className="mt-6 flex items-center justify-center gap-4">
+                {/* WhatsApp */}
+                <a
+                  href="https://wa.me/51932350348?text=Hola%2C%20me%20gustar%C3%ADa%20cotizar%20una%20invitaci%C3%B3n%20virtual"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-full bg-[#25D366] hover:bg-[#20ba5a] text-white flex items-center justify-center shadow transition-transform hover:scale-110"
+                  title="WhatsApp: 932350348"
+                  aria-label="WhatsApp"
+                >
+                  <Phone className="w-4 h-4" />
+                </a>
+
+                {/* TikTok */}
+                <a
+                  href="https://www.tiktok.com/@vaccreative?is_from_webapp=1&sender_device=pc"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-full bg-black hover:bg-stone-900 text-white flex items-center justify-center shadow border border-white/20 transition-transform hover:scale-110"
+                  title="TikTok (@vaccreative)"
+                  aria-label="TikTok"
+                >
+                  <Video className="w-4 h-4 text-pink-400" />
+                </a>
+
+                {/* YouTube */}
+                <a
+                  href="https://www.youtube.com/@V.A.C.Creative"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center shadow transition-transform hover:scale-110"
+                  title="YouTube (@V.A.C.Creative)"
+                  aria-label="YouTube"
+                >
+                  <Play className="w-4 h-4 fill-white" />
+                </a>
+
+                {/* Facebook */}
+                <a
+                  href="https://www.facebook.com/VAC.Creativ/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow transition-transform hover:scale-110"
+                  title="Facebook (VAC Creative)"
+                  aria-label="Facebook"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+              </div>
+
+              <div className="mt-6 text-[10px] text-stone-400 uppercase tracking-widest font-medium">
+                V.A.C. Creative · Invitaciones Virtuales
+              </div>
+            </div>
+
           </div>
         </footer>
 
