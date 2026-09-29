@@ -6,13 +6,27 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Heart, Calendar, Clock, MapPin, Gift, Music, Volume2, VolumeX, 
-  Send, CheckCircle2, Users, Sparkles, Mail, MessageSquare, ChevronDown, ExternalLink, Phone
+  Send, CheckCircle2, Users, Sparkles, Mail, MessageSquare, ChevronDown, ExternalLink, Phone,
+  Maximize2, X, ChevronLeft, ChevronRight, Camera
 } from 'lucide-react';
+
+const galleryPhotos = [
+  { url: 'https://res.cloudinary.com/vsgbhmey/image/upload/v1790708952/bd6ac395-7fdf-47c5-bf46-82747bd3b51f.png', title: 'Arturo & Edith' },
+  { url: 'https://res.cloudinary.com/vsgbhmey/image/upload/v1790708942/9f816cd2-bcdd-4412-88c0-67824c9696a1.png', title: 'Momentos Especiales' },
+  { url: 'https://res.cloudinary.com/vsgbhmey/image/upload/v1790708933/96348d31-92e5-4330-b3a4-97f34b6d319e.png', title: 'Nuestro Amor' },
+  { url: 'https://res.cloudinary.com/vsgbhmey/image/upload/v1790708922/10b9f0da-538d-4c34-8e3d-bbfbd1cf5e72.png', title: 'Miradas de Amor' },
+  { url: 'https://res.cloudinary.com/vsgbhmey/image/upload/v1790708888/e88e3cc8-85e9-4916-9ea0-00931dccb8ae.png', title: 'Compañeros de Vida' },
+  { url: 'https://res.cloudinary.com/vsgbhmey/image/upload/v1790708877/6ed61dde-d3d8-4a7b-b56e-d4c3f4757111.png', title: 'Felicidad Eterna' },
+  { url: 'https://res.cloudinary.com/vsgbhmey/image/upload/v1790708113/2d65b8ed-3df5-4ede-9564-aac5f1defca5.png', title: 'Camino al Altar' }
+];
 
 export default function App() {
   const [isOpen, setIsOpen] = useState(false);
   const [isPlayingMusic, setIsPlayingMusic] = useState(false);
   const [audioCtx, setAudioCtx] = useState<AudioContext | null>(null);
+
+  // Lightbox State
+  const [activeImageIndex, setActiveImageIndex] = useState<number | null>(null);
 
   // RSVP Form State
   const [rsvpName, setRsvpName] = useState('');
@@ -132,7 +146,6 @@ export default function App() {
           
           <div className="relative max-w-lg w-full bg-[#FFFEFC] rounded-2xl shadow-2xl border border-[#D4AF37]/30 p-8 sm:p-12 text-center overflow-hidden transform transition-all duration-700 animate-float">
             
-            {/* Delicate gold decorative corner ornaments */}
             <div className="absolute top-3 left-3 w-12 h-12 border-t-2 border-l-2 border-[#C5B358]/50 rounded-tl-lg"></div>
             <div className="absolute top-3 right-3 w-12 h-12 border-t-2 border-r-2 border-[#C5B358]/50 rounded-tr-lg"></div>
             <div className="absolute bottom-3 left-3 w-12 h-12 border-b-2 border-l-2 border-[#C5B358]/50 rounded-bl-lg"></div>
@@ -176,12 +189,11 @@ export default function App() {
         </div>
       )}
 
-      {/* MAIN INVITATION CONTENT (Visible after opening) */}
+      {/* MAIN INVITATION CONTENT */}
       <div className={`transition-opacity duration-1000 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         
         {/* 2. PORTADA PRINCIPAL */}
         <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-4 overflow-hidden">
-          {/* Background Photo with Scrim */}
           <div className="absolute inset-0 z-0">
             <img 
               src="https://res.cloudinary.com/vsgbhmey/image/upload/v1790695399/ed8f920f-25a6-4afc-ab52-c2b85eef2148.png" 
@@ -223,7 +235,7 @@ export default function App() {
           </div>
         </section>
 
-        {/* NAVIGATION BAR BETWEEN SECTIONS */}
+        {/* NAVIGATION BAR */}
         <nav className="sticky top-0 z-40 bg-[#FBF9F5]/90 backdrop-blur-md border-b border-stone-200 shadow-sm">
           <div className="max-w-5xl mx-auto px-4 flex items-center justify-between h-16">
             <span className="font-script text-2xl text-[#6B7F67] font-bold">A &amp; E</span>
@@ -231,6 +243,7 @@ export default function App() {
             <div className="hidden md:flex items-center gap-8 text-xs uppercase tracking-widest font-medium text-stone-600">
               <a href="#detalles" className="hover:text-[#6B7F67] transition-colors">Detalles</a>
               <a href="#calendario" className="hover:text-[#6B7F67] transition-colors">Calendario</a>
+              <a href="#galeria" className="hover:text-[#6B7F67] transition-colors">Galería</a>
               <a href="#ubicacion" className="hover:text-[#6B7F67] transition-colors">Ubicación</a>
               <a href="#asistencia" className="hover:text-[#6B7F67] transition-colors">Asistencia</a>
               <a href="#regalos" className="hover:text-[#6B7F67] transition-colors">Regalos</a>
@@ -303,7 +316,6 @@ export default function App() {
               17 de octubre de 2026
             </p>
 
-            {/* Calendar Grid */}
             <div className="grid grid-cols-7 gap-2 mb-6 text-xs uppercase font-semibold text-stone-400">
               <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
             </div>
@@ -337,8 +349,107 @@ export default function App() {
           </div>
         </section>
 
+        {/* GALERÍA DE FOTOS DE ALTO NIVEL (ADAPTABLE VERTICALES Y HORIZONTALES CON LIGHTBOX) */}
+        <section id="galeria" className="py-24 px-4 bg-[#F4EFE6]">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-16">
+              <span className="text-xs uppercase tracking-[0.3em] text-[#6B7F67] font-semibold block mb-3">
+                Nuestra Historia en Imágenes
+              </span>
+              <h3 className="font-serif-wedding text-4xl sm:text-5xl text-[#2C2A29] mb-4">
+                Galería de Momentos
+              </h3>
+              <p className="text-stone-600 text-sm sm:text-base font-sans-wedding max-w-lg mx-auto">
+                Instantes que guardamos en el corazón y que hoy compartimos con quienes más amamos. Haz clic en cualquier foto para ampliarla.
+              </p>
+            </div>
+
+            {/* Responsive Masonry / Column layout that adapts naturally to vertical & horizontal photos */}
+            <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
+              {galleryPhotos.map((photo, index) => (
+                <div 
+                  key={index} 
+                  onClick={() => setActiveImageIndex(index)}
+                  className="break-inside-avoid relative group rounded-xl overflow-hidden shadow-md cursor-pointer bg-white border border-[#C5B358]/20 transition-transform duration-500 hover:-translate-y-1 hover:shadow-xl"
+                >
+                  <img
+                    src={photo.url}
+                    alt={photo.title}
+                    className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
+                    referrerPolicy="no-referrer"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
+                    <span className="text-xs font-semibold uppercase tracking-widest text-[#D4AF37] mb-1">
+                      Arturo &amp; Edith
+                    </span>
+                    <h4 className="font-serif-wedding text-white text-xl font-light">
+                      {photo.title}
+                    </h4>
+                    <div className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white border border-white/20">
+                      <Maximize2 className="w-4 h-4" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* LIGHTBOX MODAL */}
+        {activeImageIndex !== null && (
+          <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4 sm:p-8 animate-fadeIn">
+            <button
+              onClick={() => setActiveImageIndex(null)}
+              className="absolute top-6 right-6 z-50 text-white/80 hover:text-white p-3 rounded-full bg-white/10 hover:bg-white/25 transition-colors"
+              aria-label="Cerrar galería"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveImageIndex((activeImageIndex - 1 + galleryPhotos.length) % galleryPhotos.length);
+              }}
+              className="absolute left-4 sm:left-8 text-white/80 hover:text-white p-3 rounded-full bg-white/10 hover:bg-white/25 transition-colors z-50"
+              aria-label="Anterior"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveImageIndex((activeImageIndex + 1) % galleryPhotos.length);
+              }}
+              className="absolute right-4 sm:right-8 text-white/80 hover:text-white p-3 rounded-full bg-white/10 hover:bg-white/25 transition-colors z-50"
+              aria-label="Siguiente"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+
+            <div className="max-w-4xl max-h-[85vh] flex flex-col items-center justify-center relative">
+              <img
+                src={galleryPhotos[activeImageIndex].url}
+                alt={galleryPhotos[activeImageIndex].title}
+                className="max-h-[75vh] max-w-full object-contain rounded-lg shadow-2xl border border-white/10"
+                referrerPolicy="no-referrer"
+              />
+              <div className="mt-4 text-center">
+                <p className="font-serif-wedding text-2xl text-white font-light">
+                  {galleryPhotos[activeImageIndex].title}
+                </p>
+                <p className="text-xs uppercase tracking-widest text-[#D4AF37] mt-1">
+                  {activeImageIndex + 1} de {galleryPhotos.length}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 5 & 6. SECCIÓN CEREMONIA Y RECEPCIÓN */}
-        <section id="ubicacion" className="py-24 px-4 bg-[#F4EFE6]">
+        <section id="ubicacion" className="py-24 px-4 bg-[#FBF9F5]">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-16">
               <span className="text-xs uppercase tracking-[0.3em] text-[#6B7F67] font-semibold block mb-3">
@@ -402,7 +513,7 @@ export default function App() {
         </section>
 
         {/* 7. CONFIRMACIÓN DE ASISTENCIA (WHATSAPP +51 983 991 678) */}
-        <section id="asistencia" className="py-24 px-4 bg-[#FBF9F5]">
+        <section id="asistencia" className="py-24 px-4 bg-[#F7F4EC]">
           <div className="max-w-2xl mx-auto bg-[#FFFEFC] rounded-2xl shadow-xl border border-[#C5B358]/30 p-8 sm:p-12">
             <div className="text-center mb-10">
               <span className="text-xs uppercase tracking-[0.3em] text-[#6B7F67] font-semibold block mb-2">
@@ -488,7 +599,7 @@ export default function App() {
         </section>
 
         {/* 8. MESA DE REGALOS */}
-        <section id="regalos" className="py-24 px-4 bg-[#F7F4EC]">
+        <section id="regalos" className="py-24 px-4 bg-[#FBF9F5]">
           <div className="max-w-3xl mx-auto text-center">
             <span className="text-xs uppercase tracking-[0.3em] text-[#6B7F67] font-semibold block mb-3">
               Detalles
