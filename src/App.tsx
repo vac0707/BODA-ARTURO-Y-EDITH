@@ -128,7 +128,7 @@ export default function App() {
     const message = `Hola Arturo y Edith, soy *${rsvpName}*. Confirmo mi asistencia a su boda.\n\n- ¿Asistirás?: ${attendanceText}`;
     
     const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/51983911374?text=${encodedMessage}`;
+    const whatsappUrl = `https://wa.me/51983991678?text=${encodedMessage}`;
     window.open(whatsappUrl, '_blank');
   };
 
@@ -539,7 +539,7 @@ export default function App() {
           </section>
         </RevealSection>
 
-        {/* 7. CONFIRMACIÓN DE ASISTENCIA (WHATSAPP +51 983911374) */}
+        {/* 7. CONFIRMACIÓN DE ASISTENCIA (WHATSAPP +51 983 991 678) */}
         <RevealSection>
           <section id="asistencia" className="py-24 px-4 bg-[#F7F4EC]">
             <div className="max-w-2xl mx-auto bg-[#FFFEFC] rounded-2xl shadow-xl border border-[#C5B358]/30 p-8 sm:p-12">
@@ -551,7 +551,7 @@ export default function App() {
                   Confirmación de Asistencia
                 </h3>
                 <p className="text-stone-600 text-sm font-sans-wedding mb-2">
-                  Por favor confirma tu asistencia al WhatsApp <span className="font-bold text-[#6B7F67]">+51 983911374</span> hasta el 10 de octubre de 2026.
+                  Por favor confirma tu asistencia al WhatsApp <span className="font-bold text-[#6B7F67]">+51 983 991 678</span> hasta el 10 de octubre de 2026.
                 </p>
               </div>
 
@@ -589,7 +589,7 @@ export default function App() {
                   className="w-full py-4 bg-[#25D366] hover:bg-[#20ba5a] text-white text-xs uppercase tracking-widest font-semibold rounded-lg shadow-md transition-colors flex items-center justify-center gap-2"
                 >
                   <Phone className="w-4 h-4" />
-                  <span>Confirmar por WhatsApp (+51 983911374)</span>
+                  <span>Confirmar por WhatsApp (+51 983 991 678)</span>
                 </button>
               </form>
             </div>
